@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗 Car Price Estimation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 900px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1em;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+            font-family: inherit;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            .container {
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 14px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .predict-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .predict-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .predict-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .reset-btn {
+            background: #f0f0f0;
+            color: #333;
+            border: 2px solid #e0e0e0;
+        }
+
+        .reset-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .result-section {
+            margin-top: 40px;
+            padding-top: 40px;
+            border-top: 2px solid #e0e0e0;
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .result-label {
+            font-size: 1.2em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .result-price {
+            font-size: 3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .result-currency {
+            font-size: 1.3em;
+            opacity: 0.9;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #c33;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-box {
+            background: #f0f7ff;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .info-box strong {
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 Car Price Estimation</h1>
+            <p>Predict the price of your car instantly</p>
+        </div>
+
+        <div class="info-box">
+            <strong>ℹ️ How it works:</strong> Fill in your car details and click "Get Price Estimate" to get an AI-powered price prediction.
+        </div>
+
+        <form id="estimationForm">
+            <!-- Basic Info -->
+            <h3 style="color: #333; margin-top: 20px; margin-bottom: 15px;">🚙 Basic Information</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="brand">Brand</label>
+                    <select id="brand" name="brand" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="model">Model</label>
+                    <select id="model" name="model" required></select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="age">Age (years)</label>
+                    <input type="number" id="age" name="age" min="0" max="100" step="1" value="5" required>
+                </div>
+                <div class="form-group">
+                    <label for="is_showroom">Seller Type</label>
+                    <select id="is_showroom" name="is_showroom" required>
+                        <option value="0">Individual</option>
+                        <option value="1">Showroom/Dealer</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Technical Details -->
+            <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">⚙️ Technical Details</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="mileage">Mileage (km)</label>
+                    <input type="number" id="mileage" name="mileage" min="0" step="1000" value="50000" required>
+                </div>
+                <div class="form-group">
+                    <label for="car_condition">Condition</label>
+                    <select id="car_condition" name="car_condition" required>
+                        <option value="3">Très bon (Very Good)</option>
+                        <option value="2" selected>Normal (Good)</option>
+                        <option value="1">Moyen (Average)</option>
+                        <option value="0">En panne / Accidenté (Damaged)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="seats">Seats</label>
+                    <input type="number" id="seats" name="seats" min="1" max="10" step="1" value="5" required>
+                </div>
+                <div class="form-group">
+                    <label for="doors">Doors</label>
+                    <input type="number" id="doors" name="doors" min="2" max="6" step="1" value="4" required>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <h3 style="color: #333; margin-top: 30px; margin-bottom: 15px;">🔧 Additional Features</h3>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="transmission">Transmission</label>
+                    <select id="transmission" name="transmission" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="fuel_type">Fuel Type</label>
+                    <select id="fuel_type" name="fuel_type" required></select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="drivetrain">Drivetrain</label>
+                    <select id="drivetrain" name="drivetrain" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="body_type">Body Type</label>
+                    <select id="body_type" name="body_type" required></select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="previous_owners">Previous Owners</label>
+                <select id="previous_owners" name="previous_owners" required>
+                    <option value="0">0 owners</option>
+                    <option value="1" selected>1 owner</option>
+                    <option value="2">2+ owners</option>
+                </select>
+            </div>
+
+            <!-- Buttons -->
+            <div class="button-group">
+                <button type="submit" class="predict-btn" id="predictBtn">
+                    📊 Get Price Estimate
+                </button>
+                <button type="reset" class="reset-btn">
+                    🔄 Clear Form
+                </button>
+            </div>
+        </form>
+
+        <!-- Loading Spinner -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #667eea; font-weight: 600;">Analyzing data...</p>
+        </div>
+
+        <!-- Results -->
+        <div class="result-section" id="resultSection">
+            <div class="result-box">
+                <div class="result-label">Estimated Price</div>
+                <div class="result-price" id="resultPrice">-</div>
+                <div class="result-currency" id="resultCurrency">-</div>
+            </div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage"></div>
+    </div>
+
+    <script>
+        // Get all form inputs
+        const form = document.getElementById('estimationForm');
+        const predictBtn = document.getElementById('predictBtn');
+        const loading = document.getElementById('loading');
+        const resultSection = document.getElementById('resultSection');
+        const errorMessage = document.getElementById('errorMessage');
+
+        // Load categorical options on page load
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const response = await fetch('/api/get-options');
+                const options = await response.json();
+                
+                // Populate dropdowns
+                for (const [field, values] of Object.entries(options)) {
+                    const select = document.getElementById(field);
+                    if (select) {
+                        values.forEach(value => {
+                            const option = document.createElement('option');
+                            option.value = value;
+                            option.textContent = value;
+                            select.appendChild(option);
+                        });
+                    }
+                }
+            } catch (error) {
+                showError('Failed to load options: ' + error);
+            }
+        });
+
+        // Handle form submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // Clear previous errors
+            errorMessage.classList.remove('show');
+            
+            // Show loading
+            loading.classList.add('show');
+            resultSection.classList.remove('show');
+            predictBtn.disabled = true;
+
+            try {
+                // Collect form data
+                const formData = new FormData(form);
+                const data = Object.fromEntries(formData);
+                
+                // Prepare input for model
+                const inputData = {
+                    ...data,
+                    age: parseInt(data.age),
+                    is_showroom: parseInt(data.is_showroom),
+                    seats: parseInt(data.seats),
+                    doors: parseInt(data.doors),
+                    car_condition: parseInt(data.car_condition),
+                    mileage: parseInt(data.mileage),
+                    previous_owners: parseInt(data.previous_owners)
+                };
+
+                // Make prediction request
+                const response = await fetch('/api/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(inputData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    // Display result
+                    document.getElementById('resultPrice').textContent = 
+                        result.predicted_price.toLocaleString('en-US');
+                    document.getElementById('resultCurrency').textContent = result.currency;
+                    
+                    resultSection.classList.add('show');
+                } else {
+                    showError(result.error || 'Prediction failed');
+                }
+            } catch (error) {
+                showError('Error: ' + error.message);
+            } finally {
+                loading.classList.remove('show');
+                predictBtn.disabled = false;
+            }
+        });
+
+        // Show error message
+        function showError(message) {
+            errorMessage.textContent = '❌ ' + message;
+            errorMessage.classList.add('show');
+        }
+
+        // Clear results when form is reset
+        document.querySelector('.reset-btn').addEventListener('click', () => {
+            resultSection.classList.remove('show');
+            errorMessage.classList.remove('show');
+        });
+    </script>
+</body>
+</html>
